@@ -1,6 +1,53 @@
+import React from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom";
 import App from "../App";
 
-import '@testing-library/jest-dom';
+test("pizza checkbox is initially unchecked", () => {
+  render(<App />);
+  const addPepperoni = screen.getByRole("checkbox", { name: /add pepperoni/i });
+  expect(addPepperoni).not.toBeChecked();
+});
 
-// Code tests here
+test("toppings list initially contains only cheese", () => {
+  render(<App />);
+  expect(screen.getAllByRole("listitem").length).toBe(1);
+  expect(screen.getByText("Cheese")).toBeInTheDocument();
+  expect(screen.queryByText("Pepperoni")).not.toBeInTheDocument();
+});
+
+test("checkbox becomes checked when user clicks it", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const addPepperoni = screen.getByRole("checkbox", { name: /add pepperoni/i });
+
+  await user.click(addPepperoni);
+  expect(addPepperoni).toBeChecked();
+});
+
+test("topping appears in toppings list when checked", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const addPepperoni = screen.getByRole("checkbox", { name: /add pepperoni/i });
+
+  await user.click(addPepperoni);
+  expect(screen.getAllByRole("listitem").length).toBe(2);
+  expect(screen.getByText("Cheese")).toBeInTheDocument();
+  expect(screen.getByText("Pepperoni")).toBeInTheDocument();
+});
+
+test("selected topping disappears when checked a second time", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const addPepperoni = screen.getByRole("checkbox", { name: /add pepperoni/i });
+
+  await user.click(addPepperoni);
+  expect(addPepperoni).toBeChecked();
+  expect(screen.getByText("Pepperoni")).toBeInTheDocument();
+
+  await user.click(addPepperoni);
+  expect(addPepperoni).not.toBeChecked();
+  expect(screen.queryByText("Pepperoni")).not.toBeInTheDocument();
+  expect(screen.getByText("Cheese")).toBeInTheDocument();
+});
